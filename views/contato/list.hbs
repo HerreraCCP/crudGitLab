@@ -1,0 +1,28 @@
+<h3><a class="btn btn-secondary" href="/contato"><i class="fa fa-plus"></i> Cria novo</a> Lista</h3>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nome</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th>Mensagem</th>
+            <th>Data</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {{#each list}}
+        <tr>
+            <td>{{this.nome}}</td>
+            <td>{{this.email}}</td>
+            <td>{{this.telefone}}</td>
+            <td>{{this.mensagem}}</td>
+            <td>{{this.data}}</td>
+            <td>
+                <a href="/contato/{{this._id}}"><i class="fa fa-pencil fa-lg" aria-hidden="true"></i></a>
+                <a href="/contato/delete/{{this._id}}" onclick="return confirm('Deleta?');"><i class="fa fa-trash fa-lg" aria-hidden="true"></i></a>
+            </td>
+        </tr>
+        {{/each}}
+    </tbody>
+</table>
