@@ -1,0 +1,94 @@
+variables:
+    DOCKER_IMAGE: template-${CI_PROJECT_NAME}   
+    DOCKER_STAGING: docker.sidvind.com/template-${CI_PROJECT_NAME}:${CI_COMMIT_REF_SLUG}
+    DOCKER_LATEST: docker.sidvind.com/template-${CI_PROJECT_NAME}:latest
+    
+image: node:latest
+
+stages:
+  - prepare
+  - updates
+  - teste
+  - build
+  - imagem
+  - smoketest
+  - deploy_staging
+  - deploy
+
+.bundle_install: &bundle_install |
+    - apt-get update -qq && apt-get install -y -qq nodejs
+
+.bundle_eslint: &bundle_eslint |
+    - npm run lint:eslint
+
+npm:
+  stage: prepare
+  artifacts:
+    paths:
+    - node_modules/
+    
+  script:
+    - npm i -g mocha
+    - npm i eslint 
+    - node_modules/eslint/bin/eslint.js
+      
+updates:
+    stage: updates
+    script: *bundle_install
+
+eslint:
+    stage: teste
+    before_script:
+     - npm -v
+     - npm install --silent --no-progress
+    dependencies:
+     - npm
+    script:
+    - *bundle_eslint
+    
+assets:
+  stage: build
+  dependencies:
+    - npm
+  artifacts:
+    name: ${CI_PROJECT_PATH_SLUG}-${CI_PIPELINE_ID}-assets
+    paths:
+      - public/
+  variables:
+    NODE_ENV: production
+  script:
+    - npm run build
+    
+docker:
+    stage: imagem
+    dependencies:
+     - assets
+    script:
+     - echo 'teste'
+
+smoke_test:
+    stage: smoketest
+    script:
+     - echo 'teste2'
+
+deploy_staging:
+  stage: deploy_staging
+  before_script:
+    - npm audit fix --force
+  script:
+    - git remote add dev_master https://gitlab.com/herrera.ccp/webapp.git
+    - git push dev_master master
+    - echo 'Deployed to staging server'
+  environment:
+    name: staging
+    url: https://github.com/HerreraCCP/webapp/
+
+deploy_production:
+    stage: deploy
+    script:
+     - git remote add dev_master https://gitlab.com/herrera.ccp/webapp.git
+     - git push dev_master master
+     - echo 'Deployed to production server'
+    when: manual
+    environment:
+     name: dev_master
